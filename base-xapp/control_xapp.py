@@ -37,25 +37,22 @@ def main():
     ue_info_message.ber = random()  # Set the BER value randomly between 0 and 1
 
     threshold = 0.5  # Define the BER threshold
-    send_control_request = ue_info_message.ber > threshold
+    if ue_info_message.ber > threshold:
+        # Put info message into repeated field of UE list message
+         # Put info message into repeated field of UE list message
+        ue_list_message.ue_info.extend([ue_info_message])
 
-    # put info message into repeated field of ue list message
-    ue_list_message.ue_info.extend([ue_info_message])
+        # Put UE list message into the value of the control map entry
+        ue_list_control_element.ue_list.CopyFrom(ue_list_message)
 
-    # put ue_list_message into the value of the control map entry
-    ue_list_control_element.ue_list.CopyFrom(ue_list_message)
-
-    # finalize and send
-    inner_mess.target_param_map.extend([ue_list_control_element])
-    master_mess.ran_control_request.CopyFrom(inner_mess)
-    print(master_mess)
-    buf = master_mess.SerializeToString()
-    print(master_mess)
-    buf = master_mess.SerializeToString()
-    xapp_control_ricbypass.send_to_socket(buf)
-
-
-
+        # Finalize and send the control request
+        inner_mess.target_param_map.extend([ue_list_control_element])
+        master_mess.ran_control_request.CopyFrom(inner_mess)
+        print(master_mess)
+        buf = master_mess.SerializeToString()
+        xapp_control_ricbypass.send_to_socket(buf)
+    else:
+        print("BER is not higher than the threshold. No control request sent.")
 
 if __name__ == '__main__':
     main()
