@@ -14,8 +14,10 @@ def main():
     inner_mess = RAN_indication_request()
     inner_mess.target_params.extend([RAN_parameter.GNB_ID, RAN_parameter.UE_LIST])
 
+
     # assign and serialize
     master_mess.ran_indication_request.CopyFrom(inner_mess)
+    buf = master_mess.SerializeToString()
     buf = master_mess.SerializeToString()
     xapp_control_ricbypass.send_to_socket(buf)
     
@@ -23,9 +25,12 @@ def main():
         r_buf = xapp_control_ricbypass.receive_from_socket()
         ran_ind_resp = RAN_indication_response()
         ran_ind_resp.ParseFromString(r_buf)
-        print(ran_ind_resp)
-        sleep(1)
-        xapp_control_ricbypass.send_to_socket(buf)
+
+        # Check if the received BER is higher than the threshold
+        threshold = 0.5  # Define the BER threshold
+        if ran_ind_resp.ber > threshold:
+            print("Received BER is higher than the threshold. Sending control request.")
+
 
 
 if __name__ == '__main__':

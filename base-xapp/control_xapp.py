@@ -1,6 +1,8 @@
 import xapp_control_ricbypass
 from e2sm_proto import *
 from time import sleep
+from random import random
+
 
 def main():
 
@@ -32,6 +34,10 @@ def main():
     ue_info_message.rnti = rnti
     ue_info_message.prop_1 = prop_1
     ue_info_message.prop_2 = prop_2
+    ue_info_message.ber = random()  # Set the BER value randomly between 0 and 1
+
+    threshold = 0.5  # Define the BER threshold
+    send_control_request = ue_info_message.ber > threshold
 
     # put info message into repeated field of ue list message
     ue_list_message.ue_info.extend([ue_info_message])
@@ -42,6 +48,8 @@ def main():
     # finalize and send
     inner_mess.target_param_map.extend([ue_list_control_element])
     master_mess.ran_control_request.CopyFrom(inner_mess)
+    print(master_mess)
+    buf = master_mess.SerializeToString()
     print(master_mess)
     buf = master_mess.SerializeToString()
     xapp_control_ricbypass.send_to_socket(buf)
